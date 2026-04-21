@@ -51,7 +51,10 @@ def build_converter(no_ocr: bool, no_table_structure: bool, full_quality: bool) 
         format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)},
     )
 
-
+def _filter_document_noise():
+    pass
+def _replace_native_tables_with_html(doc, markdown: str) -> str:
+    pass
 
 def _normalize_image_names(markdown: str, work_images_dir: Path, out_images_dir: Path, doc_num: int) -> str:
     out_images_dir.mkdir(parents=True, exist_ok=True)
@@ -116,3 +119,38 @@ def _normalize_image_names(markdown: str, work_images_dir: Path, out_images_dir:
     out = re.sub(r'\n{3,}', '\n\n', out)
     return out
 
+def convert_pdf(pdf_path: Path, output_dir: Path, converter: DocumentConverter) -> str:
+    stem = pdf_path.stem
+    doc_num = doc_num_from_stem(stem)
+
+    result = converter.convert(str(pdf_path))
+    doc = result.document
+
+    _filter_document_noise(doc)
+
+    with tempfile.TemporaryDirectory(prefix=f"docling_{stem}_") as tmp:
+        work = Path(tmp)
+        md_work = work / f"{stem}.md"
+        
+        doc.save_as_markdown(
+            md_work,
+            artifacts_dir=Path("images"),
+            image_mode=ImageRefMode.REFERENCED,
+        )
+        text = md_work.read_text(encoding="utf-8")
+        
+        text = _replace_native_tables_with_html(doc, text)
+
+        text = _normalize_image_names(
+            text,
+            work_images_dir=work / "images",
+            out_images_dir=output_dir / "images",
+            doc_num=doc_num,
+        )
+        
+        text = remove_text_watermarks(text)
+        
+        out_md = output_dir / f"{stem}.md"
+        out_md.write_text(text, encoding="utf-8")
+    
+    return pdf_path.name
