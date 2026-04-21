@@ -51,10 +51,31 @@ def build_converter(no_ocr: bool, no_table_structure: bool, full_quality: bool) 
         format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)},
     )
 
-def _filter_document_noise():
-    pass
-def _replace_native_tables_with_html(doc, markdown: str) -> str:
-    pass
+def _filter_document_noise(doc) -> None:
+    labels_to_remove = {DocItemLabel.PAGE_HEADER, DocItemLabel.PAGE_FOOTER}
+    if hasattr(doc, 'body') and hasattr(doc.body, 'children'):
+        doc.body.children = [
+            item for item in doc.body.children 
+            if getattr(item, "label", None) not in labels_to_remove
+        ]
+
+def _replace_native_tables_with_html(doc, md_text: str) -> str:
+    out_text = md_text
+    for item, level in doc.iterate_items():
+        if getattr(item, "label", None) == DocItemLabel.TABLE:
+            try:
+                native_md = item.export_to_markdown(doc).strip()
+                native_html = item.export_to_html(doc)
+
+                if not native_md or not native_html:
+                    continue
+
+                custom_md = parse_html_table_to_md(native_html).strip()
+                if native_md in out_text:
+                    out_text = out_text.replace(native_md, custom_md)
+            except Exception:
+                pass
+    return out_text
 
 def _normalize_image_names(markdown: str, work_images_dir: Path, out_images_dir: Path, doc_num: int) -> str:
     out_images_dir.mkdir(parents=True, exist_ok=True)
