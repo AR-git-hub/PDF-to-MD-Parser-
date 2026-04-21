@@ -55,6 +55,48 @@ def call_vlm_for_image(client: OpenAI, img_path: Path) -> dict:
     }
     """
 
-    
+    for attempt in range(3):
+        try:
+            response = client.chat.completions.create(
+                model="vis-meta-llama/llama-3.2-11b-vision-instruct",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt},
+                            {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{img_b64}"}}
+                        ],
+                    }
+                ],
+                max_tokens=6000,
+                temperature=0.0, # Чтобы был воспроизводимый результат
+                timeout=30
+            )
+            
+            raw_text = response.choices[0].message.content
+            json_match = re.search(r'\{.*\}', raw_text, re.DOTALL)
+            if not json_match:
+                raise ValueError("JSON не найден")
+                
+            res = json.loads(json_match.group())
+            cls = res.get("class", "figures")
+            elements = res.get("elements", [])
+            
+            if cls in ("table", "many_tables"):
+                if not elements:
+                    raise ValueError(f"Class '{cls}' requires elements")
+                if not any(is_valid_html_table(str(el)) for el in elements):
+                    raise ValueError("Valid HTML table structure not found in response")
+                    
+            for el in elements:
+                if isinstance(el, str) and "<table" in el.lower():
+                    if not is_valid_html_table(el):
+                        raise ValueError(f"Broken HTML table found in class '{cls}'")
+                        
+            return res
+
+        except Exception as e:
+            print(f"Ошибка VLM (Попытка {attempt+1}/3): {e}")
+            time.sleep(2)
             
     return {"class": "figures", "elements": []}
