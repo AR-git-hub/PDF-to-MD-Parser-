@@ -1,3 +1,5 @@
+"""Интеграция с VLM-моделью для классификации изображений и извлечения содержимого."""
+
 import os
 import io
 import json
@@ -9,6 +11,7 @@ from openai import OpenAI
 from utils.html_parser import is_valid_html_table
 
 def get_openai_client() -> OpenAI | None:
+    """Создает клиента OpenAI при наличии API-ключа в окружении."""
     api_key = os.environ.get("API_KEY")
     if not api_key:
         print("ВНИМАНИЕ: API_KEY не найден в .env файле.")
@@ -16,6 +19,7 @@ def get_openai_client() -> OpenAI | None:
     return OpenAI(api_key=api_key, base_url="https://api.vsegpt.ru/v1")
 
 def call_vlm_for_image(client: OpenAI, img_path: Path) -> dict:
+    """Отправляет изображение в VLM и возвращает распарсенный JSON-результат."""
     with open(img_path, "rb") as f:
         img_b64 = base64.b64encode(f.read()).decode('utf-8')
 

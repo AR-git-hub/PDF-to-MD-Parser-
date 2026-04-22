@@ -1,3 +1,5 @@
+"""Точка входа CLI для пакетной конвертации PDF в Markdown."""
+
 import argparse
 import sys
 from pathlib import Path
@@ -12,6 +14,7 @@ from core.document_pipeline import build_converter, convert_pdf
 from utils.system_helpers import clear_cuda_cache, create_submission_zip
 
 def main() -> None:
+    """Разбирает аргументы CLI и запускает параллельную обработку PDF."""
     parser = argparse.ArgumentParser(description="Baseline (Docling ACCURATE + HTML Tables + VLM Fallback)")
     parser.add_argument("--input-dir", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)

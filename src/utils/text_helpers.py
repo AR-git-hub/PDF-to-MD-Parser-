@@ -1,8 +1,11 @@
+"""Текстовые утилиты для постобработки извлеченных элементов и фильтрации шума."""
+
 import re
 from difflib import SequenceMatcher
 from utils.html_parser import parse_html_table_to_md
 
 def process_extracted_elements(elements: list) -> str:
+    """Преобразует список элементов VLM в единый Markdown-текст."""
     processed = []
     for el in elements:
         if not isinstance(el, str): continue
@@ -14,6 +17,7 @@ def process_extracted_elements(elements: list) -> str:
     return "\n\n".join(processed)
 
 def is_text_in_local_context_fuzzy(vlm_text: str, full_md: str, match_pos: int) -> bool:
+    """Проверяет, присутствует ли извлеченный текст рядом с позицией изображения."""
     clean_vlm = re.sub(r'<[^>]+>', '', vlm_text).replace(" ", "").replace("\n", "").replace("|", "").replace("-", "")
     
     if len(clean_vlm) < 15: 
@@ -43,6 +47,7 @@ def is_text_in_local_context_fuzzy(vlm_text: str, full_md: str, match_pos: int) 
     return False
 
 def remove_text_watermarks(text: str) -> str:
+    """Удаляет из текста строки, которые являются типовыми водяными знаками."""
     watermarks = ["черновик", "draft", "копия", "образец", "секретно", "конфиденциально", "draf"]
     lines = text.split('\n')
     cleaned_lines = []

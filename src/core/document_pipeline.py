@@ -1,3 +1,5 @@
+"""Основной пайплайн конвертации PDF в Markdown с постобработкой таблиц и изображений."""
+
 import re
 import tempfile
 from pathlib import Path
@@ -29,6 +31,7 @@ IMG_LINK_RE = re.compile(
 )
 
 def build_converter(no_ocr: bool, no_table_structure: bool, full_quality: bool) -> DocumentConverter:
+    """Собирает и возвращает настроенный экземпляр конвертера Docling."""
     images_scale = 1.2 if full_quality else 1.0
     ocr_opts = EasyOcrOptions(force_full_page_ocr=True, lang=["ru", "en"])
     
@@ -52,6 +55,7 @@ def build_converter(no_ocr: bool, no_table_structure: bool, full_quality: bool) 
     )
 
 def _filter_document_noise(doc) -> None:
+    """Удаляет элементы колонтитулов из структуры документа."""
     labels_to_remove = {DocItemLabel.PAGE_HEADER, DocItemLabel.PAGE_FOOTER}
     if hasattr(doc, 'body') and hasattr(doc.body, 'children'):
         doc.body.children = [
@@ -60,6 +64,7 @@ def _filter_document_noise(doc) -> None:
         ]
 
 def _replace_native_tables_with_html(doc, md_text: str) -> str:
+    """Заменяет таблицы Docling на Markdown, полученный из HTML-представления."""
     out_text = md_text
     for item, level in doc.iterate_items():
         if getattr(item, "label", None) == DocItemLabel.TABLE:
@@ -78,6 +83,7 @@ def _replace_native_tables_with_html(doc, md_text: str) -> str:
     return out_text
 
 def _normalize_image_names(markdown: str, work_images_dir: Path, out_images_dir: Path, doc_num: int) -> str:
+    """Классифицирует изображения, переименовывает их и обновляет ссылки в Markdown."""
     out_images_dir.mkdir(parents=True, exist_ok=True)
     old_to_new: dict[str, str] = {}
     order = 1
@@ -141,6 +147,7 @@ def _normalize_image_names(markdown: str, work_images_dir: Path, out_images_dir:
     return out
 
 def convert_pdf(pdf_path: Path, output_dir: Path, converter: DocumentConverter) -> str:
+    """Конвертирует один PDF в Markdown и сохраняет результат в выходную папку."""
     stem = pdf_path.stem
     doc_num = doc_num_from_stem(stem)
 

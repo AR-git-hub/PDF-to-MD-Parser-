@@ -1,9 +1,12 @@
+"""Помощники для настройки окружения и стартовых патчей совместимости."""
+
 import os
 import sys
 import warnings
 from dotenv import load_dotenv
 
 def _apply_device_from_argv() -> None:
+    """Читает --device из аргументов CLI и сохраняет значение в переменную окружения."""
     for i, arg in enumerate(sys.argv):
         if arg == "--device" and i + 1 < len(sys.argv):
             val = sys.argv[i + 1]
@@ -17,6 +20,7 @@ def _apply_device_from_argv() -> None:
             return
 
 def _patch_cv2_set_num_threads() -> None:
+    """Подставляет no-op метод, если в OpenCV отсутствует setNumThreads."""
     try:
         import cv2
     except ImportError:
@@ -25,7 +29,7 @@ def _patch_cv2_set_num_threads() -> None:
         cv2.setNumThreads = lambda _nthreads: None
 
 def setup_environment():
-    """Загрузка .env и применение системных настроек."""
+    """Загружает .env и применяет стартовые настройки для пайплайна."""
     load_dotenv()
     
     warnings.filterwarnings("ignore", category=UserWarning, message=".*pin_memory.*")

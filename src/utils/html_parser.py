@@ -1,6 +1,9 @@
+"""Утилиты для валидации и преобразования HTML-таблиц в Markdown."""
+
 import re
 
 def is_valid_html_table(html: str) -> bool:
+    """Проверяет, что строка содержит базовую структуру HTML-таблицы."""
     html = html.lower()
     return "<table" in html and "</table>" in html and "<tr" in html
 
