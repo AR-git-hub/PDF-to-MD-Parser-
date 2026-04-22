@@ -1,4 +1,4 @@
-# PDF Parser Baseline (Docling + Gemma 3 VLM)
+# PDF Parser Baseline (Docling + llama 3.2)
 
 Модульный конвейер для высокоточного извлечения текста и таблиц из PDF.
 
