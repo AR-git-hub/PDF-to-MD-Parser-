@@ -12,7 +12,7 @@
 2. Скопируйте `.env.example` в `.env` и добавьте ваш `API_KEY`.
 3. Запустите скрипт:
 ```bash
-python main.py --input-dir ./pdfs --output-dir ./results --full-quality  
+python main.py --input-dir ./dataset/public/pdfs --output-dir ./results --full-quality  
   
 ВАЖНО! Для запуска использовалась версия python3.12.3!  
 Для запуска именно в такой реализации необходима подписка на vsegpt.ru, не тестовая!
