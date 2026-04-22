@@ -8,3 +8,6 @@ __pycache__/
 *.log
 *.env
 venv/
+dataset/
+results/
+submission.zip

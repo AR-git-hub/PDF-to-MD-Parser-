@@ -59,7 +59,7 @@ def parse_html_table_to_md(html_str: str) -> str:
             val = grid.get((hr, c), "")
             if val and (not col_headers or col_headers[-1] != val):
                 col_headers.append(val)
-        header_cols.append("_".join(col_headers) if col_headers else "Column")
+        header_cols.append("_".join(col_headers) if col_headers else "Column") # склейка многоуровневых заголовков через _ , если они отличаются, иначе просто один заголовок или "Column" по умолчанию
         
     md = "|" + "|".join(header_cols) + "|\n"
     md += "|" + "|".join(["---"] * max_c) + "|\n"
